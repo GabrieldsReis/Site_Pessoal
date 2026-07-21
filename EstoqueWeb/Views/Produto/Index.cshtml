@@ -25,12 +25,12 @@
                 <span class="label">Produtos cadastrados</span>
             </div>
             <div class="tag warn">
-                <span class="num">2</span>
-                <span class="label">Itens em falta ou baixos</span>
+                R$ @Model.Sum(p => (p.PrecoVenda - p.PrecoCompra) * p.Quantidade).ToString("N2")
+                <span class="label" style="color:green">Lucro Potencial</span>
             </div>
             <div class="tag">
-                <span class="num">R$ 4.312,50</span>
-                <span class="label">Valor total em estoque</span>
+                R$ @Model.Sum(p => p.PrecoCompra * p.Quantidade).ToString("N2") <span class="label">Valor total em
+                estoque</span>
             </div>
         </div>
 
@@ -52,53 +52,66 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        @foreach (var produto in Model)
-                        {
+                    @foreach (var produto in Model)
+                    {
+                        <tr>
+                            <td>@produto.Id</td>
                             <td>@produto.Nome</td>
-                            <td>@produto.Quantidade</td>
                             <td>@produto.Categoria</td>
-                        }
-                    </tr>
+                            <td>@produto.Quantidade</td>
+                            <td>R$ @produto.PrecoVenda.ToString("N2")</td>
+                            <td>
+                                @if (produto.Status == "Em estoque")
+                                {
+                                    <span class="status ok">@produto.Status</span>
+                                }
+                                else if (produto.Status == "Baixo")
+                                {
+                                    <span class="status low">@produto.Status</span>
+                                }
+                                else
+                                {
+                                    <span class="status out">@produto.Status</span>
+                                }
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </section>
 
         <section class="add-card" id="adicionar">
             <h2>Adicionar produto</h2>
-            <p class="desc">Este formulário ainda não salva nada — é só a parte visual. Quando você ligar o banco de
-                dados, o botão abaixo vira uma chamada real pro Controller.</p>
-                <form class="add-form">
-                    <div class="field">
-                        <label for="nome">Nome do produto</label>
-                        <input type="text" id="nome" placeholder="Ex: Caneta esferográfica azul">
-                    </div>
-                    <div class="field">
-                        <label for="categoria">Categoria</label>
-                        <select id="categoria">
-                            <option>Papelaria</option>
-                            <option>Escritório</option>
-                            <option>Limpeza</option>
-                            <option>Outro</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="qtd">Quantidade</label>
-                        <input type="number" id="qtd" placeholder="0">
-                    </div>
-                    <div class="field">
-                        <label for="preco">Preço (R$)</label>
-                        <input type="text" id="preco" placeholder="0,00">
-                    </div>
-                    <div class="submit-row">
-                        <span class="todo-note">// TODO: conectar ao Controller + banco de dados</span>
-                        <button type="button" class="btn-primary">Cadastrar produto →</button>
-                    </div>
-                </form>
-            </section>
-        </main>
+            <form class="add-form">
+                <div class="field">
+                    <label for="nome">Nome do produto</label>
+                    <input type="text" id="nome" placeholder="Ex: Caneta esferográfica azul">
+                </div>
+                <div class="field">
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria">
+                        <option>Papelaria</option>
+                        <option>Escritório</option>
+                        <option>Limpeza</option>
+                        <option>Outro</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="qtd">Quantidade</label>
+                    <input type="number" id="qtd" placeholder="0">
+                </div>
+                <div class="field">
+                    <label for="preco">Preço (R$)</label>
+                    <input type="text" id="preco" placeholder="0,00">
+                </div>
+                <div class="submit-row">
+                    <button type="button" class="btn-primary">Cadastrar produto →</button>
+                </div>
+            </form>
+        </section>
+    </main>
 
 
-    </body>
+</body>
 
 </html>
