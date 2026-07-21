@@ -6,7 +6,9 @@ namespace EstoqueWeb.Models
         public required string Nome { get; set; } //obrigatorio haver nome
         public required string Categoria { get; set; }
         public int Quantidade { get; set; }
-        public decimal Preco { get; set; }
+        public decimal PrecoCompra { get; set; }
+
+        public decimal PrecoVenda { get; set; }
 
         public string Status
         {
