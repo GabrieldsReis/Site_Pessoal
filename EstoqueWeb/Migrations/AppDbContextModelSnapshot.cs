@@ -37,7 +37,10 @@ namespace EstoqueWeb.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Preco")
+                    b.Property<decimal>("PrecoCompra")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("PrecoVenda")
                         .HasColumnType("numeric");
 
                     b.Property<int>("Quantidade")
