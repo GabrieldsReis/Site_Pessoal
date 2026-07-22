@@ -1,9 +1,10 @@
-@model List<EstoqueWeb.Models.Produto>
+@model EstoqueWeb.ViewModels.EstoqueViewModel
 
 @{
-    decimal lucro = Model.Sum(p => (p.PrecoVenda - p.PrecoCompra) * p.Quantidade);
-    decimal valorEstoque = Model.Sum(p => p.PrecoCompra * p.Quantidade);
-    int produtosBaixos = Model.Count(p => p.Quantidade <= 10);
+    var produtos = Model.Produtos;
+    decimal lucro = produtos.Sum(p => (p.PrecoVenda - p.PrecoCompra) * p.Quantidade);
+    decimal valorEstoque = produtos.Sum(p => p.PrecoCompra * p.Quantidade);
+    int produtosBaixos = produtos.Count(p => p.Quantidade <= 10);
 }
 <!--*vou arrumar isso dps, pra um view */ -->
 
@@ -32,7 +33,7 @@
         <div class="summary">
 
             <div class="tag">
-                <span class="num">@Model.Count</span>
+                <span class="num">@Model.Produtos.Count</span>
                 <span class="label">Produtos cadastrados</span>
             </div>
 
@@ -91,7 +92,7 @@
 
                 <tbody>
 
-                    @foreach (var produto in Model)
+                    @foreach (var produto in Model.Produtos)
                     {
                         <tr>
 

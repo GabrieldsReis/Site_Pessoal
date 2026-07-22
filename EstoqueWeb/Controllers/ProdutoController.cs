@@ -15,11 +15,15 @@ public class ProdutoController : Controller
 
 
 
-    public IActionResult Index()
+   public IActionResult Index()
+{
+    var viewModel = new EstoqueViewModel
     {
-        var produtos = _context.Produtos.ToList();
-        return View(produtos);
-    }
+        Produtos = _context.Produtos.ToList()
+    };
+
+    return View(viewModel);
+}
 
     [HttpPost]
     public IActionResult Create(EstoqueViewModel model)
