@@ -1,5 +1,5 @@
-using System.Runtime;
 using EstoqueWeb.Data;
+using EstoqueWeb.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EstoqueWeb.Controllers;
@@ -15,12 +15,19 @@ public class ProdutoController : Controller
 
 
 
-
-
-
     public IActionResult Index()
     {
         var produtos = _context.Produtos.ToList();
         return View(produtos);
+    }
+
+    [HttpPost]
+    public IActionResult Create(EstoqueViewModel model)
+    {
+        _context.Produtos.Add(model.NovoProduto);
+
+        _context.SaveChanges();
+
+        return RedirectToAction(nameof(Index));
     }
 }

@@ -3,8 +3,8 @@ namespace EstoqueWeb.Models
     public class Produto
     {
         public int Id { get; set; } //modelo padrao de cada produto no banco de dados
-        public required string Nome { get; set; } //obrigatorio haver nome
-        public required string Categoria { get; set; }
+        public string Nome { get; set; } = "";
+        public string Categoria { get; set; } = "";
         public int Quantidade { get; set; }
         public decimal PrecoCompra { get; set; }
 
