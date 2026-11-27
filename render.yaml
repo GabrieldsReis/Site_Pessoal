@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: estoqueweb
+    runtime: docker
+    plan: free
+    dockerfilePath: ./EstoqueWeb/Dockerfile
+    dockerContext: ./EstoqueWeb
+    healthCheckPath: /
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Storage__SupabaseUrl
+        sync: false
+      - key: Storage__ServiceKey
+        sync: false
+      - key: Storage__Bucket
+        value: produtos
+      - key: InitialAdmin__Email
+        sync: false
+      - key: InitialAdmin__Password
+        sync: false

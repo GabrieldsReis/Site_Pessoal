@@ -5,6 +5,11 @@
 
 # dotenv files
 .env
+.env.*
+!.env.example
+wwwroot/uploads/
+*.dump
+*.sql
 
 # User-specific files
 *.rsuser
