@@ -3,6 +3,8 @@ services:
     name: estoqueweb
     runtime: docker
     plan: free
+    branch: feature/estoqueweb-cosmeticos
+    autoDeployTrigger: checksPass
     dockerfilePath: ./EstoqueWeb/Dockerfile
     dockerContext: ./EstoqueWeb
     healthCheckPath: /

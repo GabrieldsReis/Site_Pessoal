@@ -1,6 +1,6 @@
 # Relatório final de execução — EstoqueWeb
 
-**Situação: implementação local verificada; publicação e entrada em operação ainda bloqueadas por serviços e credenciais externas.** A loja não está sendo declarada concluída: não há endereço público comprovado, banco conectado, armazenamento remoto configurado ou teste end-to-end publicado.
+**Situação: código enviado ao GitHub e CI aprovada; aplicação ainda não publicada.** O commit `f8454c412a40242b5a850ec82c95e85bec7d48e1` está na branch `feature/estoqueweb-cosmeticos`. A Pull Request #1 está aberta e não mesclada. Não há URL pública, serviço de hospedagem conectado, banco ou armazenamento remoto configurado, nem smoke test publicado.
 
 ## Arquitetura atual
 
@@ -13,11 +13,11 @@
 
 ## Decisão de hospedagem
 
-A exigência de custo exclusivamente zero não tem uma combinação verificada que assegure disponibilidade contínua, persistência com recuperação e ausência de pausas para esta aplicação. Render Free suspende a aplicação depois de 15 minutos sem tráfego, pode levar cerca de um minuto para reativar, apaga arquivos locais ao reiniciar e o Postgres Free expira em 30 dias. Supabase Free oferece banco e Storage persistentes dentro de cotas, mas pode pausar projetos com baixa atividade por sete dias e não oferece backups para download no plano Free.
+A opção já preparada é Render Free para o container e Supabase Free para PostgreSQL e Storage. É uma prévia de custo nominal zero dentro das cotas, não uma garantia de operação comercial nem de cobrança sempre zero: Render suspende serviços gratuitos após 15 minutos sem tráfego, pode levar cerca de um minuto para reativar, perde arquivos locais em reinícios e informa que excedente de banda pode ser cobrado. Supabase Free pode pausar projetos após uma semana com pouca atividade, não disponibiliza backups para download no plano Free e tem cotas de uso. Não criei contas/serviços nem configurei pagamento; não se deve ativar hospedagem até confirmar no painel que o uso continuará dentro do gratuito e que nenhuma opção paga/overage foi habilitada.
 
 Cloudflare Workers/D1/R2 oferece quotas gratuitas sem cold start tradicional e armazenamento de objetos; porém exigiria reescrever a aplicação .NET MVC, substituir EF Core/Identity/PostgreSQL e aceitar limites diários que interrompem operações ao serem atingidos. Isso seria uma migração ampla e sem benefício comprovado de confiabilidade dos dados para a loja. Fly.io oferece apenas avaliação temporária sem meio de operação contínua gratuito. Mantive a arquitetura que já existe e não ativei serviços, planos ou cobrança.
 
-Fontes dos provedores consultadas em 27/11/2026: [limites gratuitos do Render](https://render.com/docs/free), [pausa de projetos Supabase](https://supabase.com/docs/guides/platform/free-project-pausing), [cotas Supabase](https://supabase.com/docs/guides/platform/billing-on-supabase), [limites do Workers](https://developers.cloudflare.com/workers/platform/limits/), [preços de D1/Workers](https://developers.cloudflare.com/workers/platform/pricing/), [cota de R2](https://developers.cloudflare.com/r2/pricing/) e [avaliação Fly.io](https://fly.io/docs/about/free-trial/).
+Fontes oficiais consultadas em 27/11/2026: [limites gratuitos do Render](https://render.com/docs/free), [Blueprint do Render](https://render.com/docs/blueprint-spec), [pausa de projetos Supabase](https://supabase.com/docs/guides/platform/free-project-pausing), [cotas e planos Supabase](https://supabase.com/docs/guides/platform/billing-on-supabase), [backups Supabase](https://supabase.com/docs/guides/platform/backups), [modos de conexão PostgreSQL Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres), [chaves API Supabase](https://supabase.com/docs/guides/getting-started/api-keys) e [buckets Supabase Storage](https://supabase.com/docs/guides/storage/buckets/creating-buckets).
 
 ## Funcionalidades encontradas e melhorias entregues
 
@@ -37,7 +37,7 @@ Fontes dos provedores consultadas em 27/11/2026: [limites gratuitos do Render](h
 - `dotnet build EstoqueWeb.slnx --configuration Release`: build aprovado, 0 avisos e 0 erros.
 - `dotnet test EstoqueWeb.slnx --no-build --configuration Release`: 5 aprovados, 0 falhos.
 - `git diff --check`: aprovado.
-- O workflow GitHub Actions foi criado localmente, mas não foi disparado porque o commit/push da branch não pôde ser feito.
+- GitHub Actions no commit `f8454c412a40242b5a850ec82c95e85bec7d48e1`: execução `46051667770` (evento `push`) e `46051667852` (evento `pull_request`), ambas `.NET`, `completed` / `success`.
 - Os testes existentes cobrem ocultação de custo/quantidade interna e validação de dados de contato.
 - Não foram feitos testes de navegador, testes contra banco, validação de upload conectado nem smoke tests locais de rotas: não há connection string configurada; sem banco, as páginas que leem o catálogo não podem ser servidas corretamente.
 - Nenhum teste da versão publicada foi realizado, pois não há URL de deploy conectada ou conhecida.
@@ -45,17 +45,36 @@ Fontes dos provedores consultadas em 27/11/2026: [limites gratuitos do Render](h
 ## Publicação
 
 - URL pública: **não publicada / não verificada**.
-- O repositório GitHub existe e está conectado. O envio da branch não foi concluído: o diretório `.git` local é somente leitura e a integração do GitHub recusou as chamadas de escrita por exigirem aprovação, indisponível na política atual.
-- Nenhuma migration foi aplicada e nenhum banco foi acessado ou alterado.
+- Branch publicada: [feature/estoqueweb-cosmeticos](https://github.com/GabrieldsReis/Site_Pessoal/tree/feature/estoqueweb-cosmeticos). Commit: `f8454c412a40242b5a850ec82c95e85bec7d48e1`.
+- Pull Request #1: [Implementa vitrine de cosméticos e painel administrativo](https://github.com/GabrieldsReis/Site_Pessoal/pull/1), aberta e não mesclada. Mantida sem alteração de estado.
+- Migration — **não verificada**. O corpo da PR afirma que a migration aditiva foi aplicada a um PostgreSQL disponível. Em contraste, `EXECUTION_LOG.md` registra que não havia connection string e nenhuma migration foi executada. A revisão atual encontrou somente o código que chama `MigrateAsync()` quando há connection string; não encontrou credencial, log de banco/deploy nem evidência de consulta a `__EFMigrationsHistory`. Não afirmar que foi aplicada nem que não foi aplicada. Antes de conectar um banco já existente, confirmar o histórico de migrations e obter backup; em banco novo, a inicialização tentará aplicar as migrations automaticamente.
+- Nenhuma conta, serviço, banco, bucket ou domínio foi criado neste trabalho.
 
-## Pendências externas necessárias
+## Contas e configurações externas para deploy
 
-1. Proprietário precisa criar ou selecionar um projeto PostgreSQL/Supabase e fornecer a connection string usando o painel de secrets do provedor.
-2. Configurar Supabase Storage com bucket `produtos` público para leitura e secret de serviço exclusivamente no ambiente do servidor.
-3. Conectar a branch de desenvolvimento a um serviço Render ou host que execute containers .NET. O Render Free atual é apenas prévia e não satisfaz disponibilidade/persistência confiável; um serviço adequado e sem custo obrigatório precisa ser escolhido pelo proprietário ou permanecer sem lançamento público.
-4. Configurar e verificar o administrador inicial e apagar a senha temporária do ambiente depois da primeira criação.
-5. A responsável da loja preencher WhatsApp, nome, Instagram, entrega/pagamento e cadastrar produtos e fotografias reais.
-6. Após conexão dos serviços: executar as migrations incrementais sobre o banco identificado; realizar smoke tests externo, upload, CRUD, sessão administrativa, sacola, WhatsApp, desktop/celular e persistência após reinício/deploy.
+O deploy está preparado em `render.yaml` e Dockerfile, mas ainda exige que a pessoa responsável conecte as contas nos painéis. Não envie senhas/chaves por chat nem faça commit de valores reais.
+
+1. **GitHub**: a conta/repositório já existem e a branch de feature está publicada. A pessoa que cria o serviço Render precisa autorizar acesso desse serviço ao repositório `GabrieldsReis/Site_Pessoal`.
+2. **Supabase**: criar/selecionar uma organização no plano Free e um projeto PostgreSQL, escolher região próxima da aplicação, definir e guardar a senha do banco. Para Render, copiar no Dashboard → Connect a connection string **Session pooler** (IPv4, porta `5432`) e formatar para Npgsql como `Host=<pooler-host>;Port=5432;Database=postgres;Username=postgres.<project-ref>;Password=<senha-do-banco>;SSL Mode=Require`. Confirmar host, usuário e região no próprio painel; eles variam por projeto.
+3. **Supabase Storage** no mesmo projeto: criar bucket chamado `produtos`, marcado como público somente para leitura das imagens. A aplicação envia/exclui arquivos no servidor. Para `Storage__ServiceKey`, o código atual usa a chave legada `service_role` em `Authorization: Bearer` e `apikey`; não use chave `anon`/publishable. Chaves secret novas `sb_secret_...` não são substitutas sem ajuste no código, pois a documentação atual manda enviá-las apenas no header `apikey`. Esta chave tem acesso elevado e deve existir somente como segredo do serviço Render.
+4. **Render**: criar/usar uma conta e workspace, conectar o GitHub e iniciar um Blueprint apontando para `render.yaml` da branch `feature/estoqueweb-cosmeticos`. O blueprint fixa essa branch e `autoDeployTrigger: checksPass`; o serviço só deve publicar commits após os checks GitHub passarem. A configuração pede os seguintes valores no painel, nunca no YAML:
+
+   | Variável | Valor a cadastrar |
+   | --- | --- |
+   | `ASPNETCORE_ENVIRONMENT` | `Production` (já definido no blueprint) |
+   | `ConnectionStrings__DefaultConnection` | String Npgsql do Session pooler Supabase, com SSL |
+   | `Storage__SupabaseUrl` | URL do projeto Supabase (`https://<project-ref>.supabase.co`) |
+   | `Storage__ServiceKey` | Chave legada `service_role`, exclusivamente no servidor |
+   | `Storage__Bucket` | `produtos` (já definido no blueprint) |
+   | `InitialAdmin__Email` | E-mail da pessoa responsável pelo painel |
+   | `InitialAdmin__Password` | Senha aleatória forte, de uso exclusivo; retirar do ambiente após criar/verificar o primeiro acesso |
+
+5. **Dados de operação da loja**: a responsável precisa informar nome, WhatsApp em formato internacional, Instagram, região, regras reais de entrega/pagamento, produtos e fotos. Esses dados são preenchidos no painel da aplicação após deploy.
+6. **Domínio próprio**: opcional; só é necessário se a loja tiver domínio. A URL `onrender.com` serve para prévia.
+
+`EstoqueWeb/Program.cs` executa migrations e cria a primeira configuração/admin na inicialização apenas quando a connection string está configurada. Antes do primeiro deploy com banco já usado, verificar `__EFMigrationsHistory` com acesso autorizado e backup recente. Com banco novo, registrar a migration aplicada olhando os logs de startup e a tabela de histórico. Depois, testar login, páginas públicas, upload, CRUD, sacola/WhatsApp e persistência.
+
+**Custo**: o blueprint fixa apenas o serviço web Free e não cria banco Render. Não contratar plano pago, habilitar recurso pago, conectar cartão ou aceitar overage. Como a documentação Render informa cobrança de excedente de banda, não há garantia de cobrança zero após ativar conta/serviço; conferir limites e faturamento no workspace antes de criação. Supabase Free também tem limites e pausa por inatividade. Se a exigência for garantia absoluta de não gerar cobrança, manter o deploy desligado até haver um caminho com limite rígido de gasto confirmado no painel.
 
 ## Manutenção
 

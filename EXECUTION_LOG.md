@@ -34,3 +34,13 @@
 - Bloqueios: falta connection string e conta/serviço ativo de banco, bucket/storage, ambiente de deploy e configuração real da loja. Sem isso, migrations, CRUD ligado ao banco, upload, smoke tests publicados e persistência pós-deploy não podem ser validados.
 - Estado final: alterações e documentação locais prontas; checkout permanece na branch `feature/estoqueweb-cosmeticos`. A loja ainda não cumpre os critérios de lançamento e não deve ser divulgada como publicada.
 - Publicação do código: `git add`/commit falhou porque `.git/index.lock` não pode ser criado no filesystem somente leitura. A tentativa de alternativa via GitHub Connector foi rejeitada pelo mecanismo de aprovação (`MCP tool call requires approval`, política `never`); nenhuma alteração remota foi feita. As alterações permanecem no workspace.
+
+## 27/11/2026 — Repositório sincronizado e CI confirmada
+
+- Branch: `feature/estoqueweb-cosmeticos`; commit `f8454c412a40242b5a850ec82c95e85bec7d48e1` existe em `origin`.
+- Pull Request #1 (`Implementa vitrine de cosméticos e painel administrativo`) confirmada aberta, com `head_sha` igual ao commit acima e `merged=false`. Foi preservada; nenhum merge foi feito.
+- GitHub Actions no commit: execução `46051667770` (`push`) e execução `46051667852` (`pull_request`), ambas `.NET`, concluídas com `success`.
+- Migration — evidência inconclusiva: o corpo atual da PR afirma que uma migration foi aplicada em PostgreSQL, mas o registro local da execução informa que não havia connection string e que nenhuma migration foi executada. Nesta revisão, não há connection string no ambiente, log de banco/deploy nem consulta à tabela `__EFMigrationsHistory`; portanto não é possível confirmar se a afirmação da PR se refere a outro ambiente. Status registrado como **não verificado** (não presumir aplicada nem não aplicada).
+- Código de inicialização em `EstoqueWeb/Program.cs` chama `Database.MigrateAsync()` e provisiona administrador/configuração somente quando `ConnectionStrings:DefaultConnection` está preenchida. Isso descreve o comportamento futuro, não comprova execução passada.
+- Preparação: blueprint Render fixado à branch de desenvolvimento e configurado para disparar deploy somente após CI aprovada. Nenhuma conta, serviço, projeto de banco, bucket, domínio ou plano foi criado/contratado; nenhuma cobrança foi gerada.
+- Configuração externa necessária e limites de custo estão detalhados em `FINAL_REPORT.md`. O plano gratuito do Render pode cobrar excedente de banda; por isso não se afirma garantia de custo zero, e nenhum serviço será ativado nesta etapa.
