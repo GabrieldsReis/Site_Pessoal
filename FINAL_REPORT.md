@@ -37,9 +37,11 @@ Para reduzir risco de custo, o código Cloudflare limita armazenamento reservado
 - Estado conferido: `feature/estoqueweb-cosmeticos` remoto em `54bb8077052741c5746f443906e641662038d64e`.
 - Duas execuções `.NET` concluídas com sucesso no commit `f8454c412a40242b5a850ec82c95e85bec7d48e1`: `46051667770` (`push`) e `46051667852` (`pull_request`).
 - No último commit informado/confirmado, `54bb8077052741c5746f443906e641662038d64e`, as execuções `.NET` `46052454547` (`push`) e `46052460974` (`pull_request`) também concluíram com sucesso.
+- CI da branch Cloudflare: execução `46057829667` (`push`, commit `760049e6a8bc2e3b36e49ba2a277cd8fdc71c4a2`) e `46057944377` (`push`, commit `90d5c62645e76ee0a423c0403c24e9333d3790f5`), ambas `Cloudflare storefront`, concluídas com `success`. Incluem `npm ci`, seis testes unitários e `wrangler deploy --dry-run`; a segunda foi validada após atualizar checkout/setup-node para runtime Node 24.
 - PR #1: [Implementa vitrine de cosméticos e painel administrativo](https://github.com/GabrieldsReis/Site_Pessoal/pull/1), aberta, head `54bb8077052741c5746f443906e641662038d64e`, não mesclada. Preservada.
 - Migration original do PostgreSQL: **não verificada**. A descrição da PR diz que uma migration foi aplicada, enquanto o registro local diz que não havia connection string. Não existe neste ambiente credencial, log de execução contra esse PostgreSQL ou consulta a `__EFMigrationsHistory`. Portanto não é possível afirmar que foi aplicada ou que não foi aplicada. Esta migration PostgreSQL não foi executada neste trabalho. A migration D1 local e a futura D1 remota são bancos diferentes.
 - Nenhum merge para `main` foi feito.
+- Branch separada enviada ao GitHub: `feature/estoqueweb-cloudflare`, head de código/CI `90d5c62645e76ee0a423c0403c24e9333d3790f5`. Nenhuma PR nova foi criada; a PR #1 existente foi preservada sem alteração.
 
 ## O que falta para publicar
 
