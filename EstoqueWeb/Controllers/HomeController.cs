@@ -25,6 +25,8 @@ public class HomeController(AppDbContext context) : Controller
             ProdutosCarrinho = await context.Produtos.AsNoTracking().Where(p => p.IsActive).OrderBy(p => p.Nome)
                 .Select(p => new CarrinhoProdutoViewModel { Id = p.Id, Nome = p.Nome, PrecoVenda = p.PrecoVenda, Disponivel = p.Quantidade > 0 }).ToListAsync(cancellationToken),
             Categorias = await context.Produtos.AsNoTracking().Where(p => p.IsActive).Select(p => p.Categoria).Distinct().OrderBy(c => c).ToListAsync(cancellationToken) };
+        ViewData["CartCatalog"] = System.Text.Json.JsonSerializer.Serialize(vm.ProdutosCarrinho,
+            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
         ViewData["Busca"] = busca;
         ViewData["Categoria"] = categoria;
         return View(vm);
@@ -36,7 +38,15 @@ public class HomeController(AppDbContext context) : Controller
             .Select(p => new ProdutoPublicoViewModel { Id = p.Id, Nome = p.Nome, Descricao = p.Descricao,
                 Categoria = p.Categoria, PrecoVenda = p.PrecoVenda, ImageUrl = p.ImageUrl,
                 Disponivel = p.Quantidade > 0, Destaque = p.IsFeatured }).FirstOrDefaultAsync(cancellationToken);
-        return p is null ? NotFound() : View(p);
+        if (p is null) return NotFound();
+        var config = await context.ConfiguracoesLoja.AsNoTracking().OrderBy(c => c.Id).FirstOrDefaultAsync(cancellationToken) ?? new ConfiguracaoLoja();
+        ViewData["StoreName"] = config.NomeLoja;
+        ViewData["WhatsApp"] = config.TelefoneWhatsApp;
+        var cartItems = await context.Produtos.AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.Nome)
+            .Select(x => new CarrinhoProdutoViewModel { Id = x.Id, Nome = x.Nome, PrecoVenda = x.PrecoVenda, Disponivel = x.Quantidade > 0 }).ToListAsync(cancellationToken);
+        ViewData["CartCatalog"] = System.Text.Json.JsonSerializer.Serialize(cartItems,
+            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+        return View(p);
     }
 
     [HttpPost, ValidateAntiForgeryToken]

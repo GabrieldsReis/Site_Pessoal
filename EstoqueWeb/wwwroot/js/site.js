@@ -46,8 +46,10 @@
       const response = await fetch('/Home/ValidarCarrinho', { method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token }, body: JSON.stringify(Object.keys(cart).map(Number)) });
       if (!response.ok) throw new Error();
       const current = await response.json();
-      for (const id of Object.keys(cart)) { const p = current.find(x => x.id === Number(id)); if (!p || !p.isActive || !p.disponivel) { delete cart[id]; productMap.delete(Number(id)); } else { const local = productMap.get(Number(id)); local.price = p.precoVenda; local.nome = p.nome; } }
+      let unavailableRemoved = false;
+      for (const id of Object.keys(cart)) { const p = current.find(x => x.id === Number(id)); if (!p || !p.isActive || !p.disponivel) { delete cart[id]; productMap.delete(Number(id)); unavailableRemoved = true; } else { const local = productMap.get(Number(id)); local.price = p.precoVenda; local.nome = p.nome; } }
       persist(); render();
+      if (unavailableRemoved) { status.textContent = 'Um ou mais itens ficaram indisponíveis e foram removidos. Revise a sacola antes de continuar.'; return; }
       if (!Object.keys(cart).length) { status.textContent = 'Um ou mais itens ficaram indisponíveis. Revise sua sacola.'; return; }
       const fmt = n => money(n);
       const entries = Object.entries(cart).map(([id, qty]) => { const p = productMap.get(Number(id)); return `• ${p.nome} — ${qty} × ${fmt(p.price)} = ${fmt(p.price * qty)}`; });
