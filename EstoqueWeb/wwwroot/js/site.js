@@ -12,6 +12,7 @@
   const dialog = document.getElementById('cart-dialog');
   const lines = document.getElementById('cart-lines');
   const message = document.getElementById('cart-message');
+  const emptyState = document.getElementById('cart-empty');
   const money = n => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
   const persist = () => localStorage.setItem(CART_KEY, JSON.stringify(cart));
   function render() {
@@ -31,6 +32,7 @@
       const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', `Remover ${p.nome}`); remove.onclick = () => { delete cart[p.id]; persist(); render(); }; controls.append(remove); row.append(info, controls); lines.append(row);
     });
     const countNode = document.getElementById('cart-count'); if (countNode) countNode.textContent = String(count);
+    if (emptyState) emptyState.hidden = count > 0;
     const totalNode = document.getElementById('cart-total'); if (totalNode) totalNode.textContent = money(total);
     const checkout = document.getElementById('checkout'); if (checkout) checkout.disabled = !count || !window.storeSettings?.phone;
   }
