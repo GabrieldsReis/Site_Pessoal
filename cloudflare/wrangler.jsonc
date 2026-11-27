@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "estoqueweb-cloudflare",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-27",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/media/*", "/produto/*", "/admin*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "estoqueweb",
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "estoqueweb-product-images"
+    }
+  ],
+  "vars": {
+    "MAX_IMAGE_STORAGE_BYTES": "8589934592"
+  }
+}

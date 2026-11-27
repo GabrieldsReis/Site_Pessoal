@@ -1,0 +1,4 @@
+# Copie para .dev.vars para testar localmente. Nunca use valores reais no Git.
+BOOTSTRAP_ADMIN_EMAIL=admin@example.invalid
+BOOTSTRAP_ADMIN_PASSWORD=TroqueEstaSenhaLocal!2026
+SESSION_SECRET=local-only-change-this-to-at-least-32-random-characters

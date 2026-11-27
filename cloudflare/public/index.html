@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fbf8f5">
+  <meta name="description" content="Conheça os produtos, consulte a disponibilidade e fale diretamente com a loja.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="EstoqueWeb · Minha loja">
+  <meta property="og:description" content="Conheça os produtos, consulte a disponibilidade e fale diretamente com a loja.">
+  <meta name="twitter:card" content="summary">
+  <!-- PRODUCT_METADATA -->
+  <title>EstoqueWeb · Minha loja</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Página inicial">Minha loja<span>beleza com carinho</span></a>
+    <nav aria-label="Navegação principal">
+      <a href="/">Início</a><a href="/#catalogo">Produtos</a>
+      <button id="open-cart" class="cart-trigger" type="button">Sacola <span id="cart-count">0</span></button>
+    </nav>
+  </header>
+  <main id="app"><p class="loading">Carregando a loja…</p></main>
+  <footer class="footer"><span>Atendimento feito diretamente pela loja.</span><a href="/admin">Acesso da loja</a></footer>
+  <dialog id="cart-dialog" class="cart-dialog">
+    <div class="cart-head"><div><p class="eyebrow">Sua seleção</p><h2>Minha sacola</h2></div>
+      <button id="close-cart" class="icon-button" type="button" aria-label="Fechar sacola">×</button></div>
+    <p id="cart-empty" class="muted">Sua sacola está vazia. Explore os produtos e adicione seus favoritos.</p>
+    <div id="cart-lines"></div>
+    <p class="cart-total">Total estimado <strong id="cart-total">R$ 0,00</strong></p>
+    <p class="muted">Preço, disponibilidade e entrega serão confirmados pela loja. O pedido só é enviado quando você tocar em enviar no WhatsApp.</p>
+    <button id="checkout" class="button button-dark" type="button">Enviar pedido pelo WhatsApp</button>
+    <p id="cart-message" class="form-message" role="status"></p>
+  </dialog>
+</body>
+</html>

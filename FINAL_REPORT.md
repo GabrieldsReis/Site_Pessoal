@@ -1,85 +1,50 @@
-# Relatório final de execução — EstoqueWeb
+# Relatório final — EstoqueWeb
 
-**Situação: código enviado ao GitHub e CI aprovada; aplicação ainda não publicada.** O commit `f8454c412a40242b5a850ec82c95e85bec7d48e1` está na branch `feature/estoqueweb-cosmeticos`. A Pull Request #1 está aberta e não mesclada. Não há URL pública, serviço de hospedagem conectado, banco ou armazenamento remoto configurado, nem smoke test publicado.
-
-## Arquitetura atual
-
-- ASP.NET Core MVC em .NET 10, renderização no servidor e assets estáticos locais.
-- Entity Framework Core com PostgreSQL; migrations incrementais preservadas.
-- ASP.NET Core Identity para proteger o painel e provisionar o primeiro administrador por secrets de ambiente.
-- Supabase Storage via upload de servidor para guardar fotografias fora do filesystem efêmero.
-- Carrinho local no navegador; confirmação de estoque/preço no servidor antes de preparar a mensagem do WhatsApp. O sistema não recebe pagamentos nem reserva produtos.
-- Render Free configurado como alvo de prévia, não recomendado para operação comercial contínua.
+**Estado em 27/11/2026:** a aplicação ASP.NET Core original está preservada na branch `feature/estoqueweb-cosmeticos`, commit remoto `54bb8077052741c5746f443906e641662038d64e`. A PR #1 continua aberta e sem merge. Uma implementação Cloudflare separada está sendo preparada na branch `feature/estoqueweb-cloudflare`; o Worker, D1, R2 e segredos remotos ainda não existem, portanto **não há publicação pública nem endereço de produção**.
 
 ## Decisão de hospedagem
 
-A opção já preparada é Render Free para o container e Supabase Free para PostgreSQL e Storage. É uma prévia de custo nominal zero dentro das cotas, não uma garantia de operação comercial nem de cobrança sempre zero: Render suspende serviços gratuitos após 15 minutos sem tráfego, pode levar cerca de um minuto para reativar, perde arquivos locais em reinícios e informa que excedente de banda pode ser cobrado. Supabase Free pode pausar projetos após uma semana com pouca atividade, não disponibiliza backups para download no plano Free e tem cotas de uso. Não criei contas/serviços nem configurei pagamento; não se deve ativar hospedagem até confirmar no painel que o uso continuará dentro do gratuito e que nenhuma opção paga/overage foi habilitada.
+Para os requisitos de acesso após inatividade, inicialização rápida e armazenamento persistente gratuito, a alternativa preparada é Cloudflare Workers Free + D1 Free + R2 Standard. Worker não dorme por inatividade e D1/R2 são serviços persistentes. A aplicação foi reimplementada em branch isolada; nenhum arquivo ASP.NET Core/PostgreSQL foi removido ou substituído na branch original. Esta escolha é de melhor adequação entre as opções avaliadas, mas não é garantia de operação sem interrupções: as cotas gratuitas podem encerrar solicitações quando atingidas, e a franquia R2 não protege de cobrança por uso externo ao limite configurado.
 
-Cloudflare Workers/D1/R2 oferece quotas gratuitas sem cold start tradicional e armazenamento de objetos; porém exigiria reescrever a aplicação .NET MVC, substituir EF Core/Identity/PostgreSQL e aceitar limites diários que interrompem operações ao serem atingidos. Isso seria uma migração ampla e sem benefício comprovado de confiabilidade dos dados para a loja. Fly.io oferece apenas avaliação temporária sem meio de operação contínua gratuito. Mantive a arquitetura que já existe e não ativei serviços, planos ou cobrança.
+Render Free foi descartado porque suspende web services após 15 minutos sem tráfego, leva aproximadamente um minuto para reativar, tem filesystem efêmero e Postgres Free que expira após 30 dias. Supabase Free pode pausar o projeto após uma semana de pouca atividade; combiná-lo ao Render manteria o problema de inatividade. Fontes oficiais: [Render Free](https://render.com/docs/free), [pausa de projetos Supabase](https://supabase.com/docs/guides/platform/free-project-pausing).
 
-Fontes oficiais consultadas em 27/11/2026: [limites gratuitos do Render](https://render.com/docs/free), [Blueprint do Render](https://render.com/docs/blueprint-spec), [pausa de projetos Supabase](https://supabase.com/docs/guides/platform/free-project-pausing), [cotas e planos Supabase](https://supabase.com/docs/guides/platform/billing-on-supabase), [backups Supabase](https://supabase.com/docs/guides/platform/backups), [modos de conexão PostgreSQL Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres), [chaves API Supabase](https://supabase.com/docs/guides/getting-started/api-keys) e [buckets Supabase Storage](https://supabase.com/docs/guides/storage/buckets/creating-buckets).
+Limites oficiais verificados em 27/11/2026: Workers Free tem 100 mil requisições/dia e 10 ms de CPU por requisição; D1 Free tem 5 milhões de linhas lidas/dia, 100 mil linhas gravadas/dia e 5 GB de armazenamento agregado. Ao atingir limites diários Free, requisições/consultas falham até a renovação da cota. R2 Standard inclui 10 GB-mês, 1 milhão de operações Classe A e 10 milhões Classe B ao mês; excedentes podem ser cobrados. Fontes: [Workers pricing e limites](https://developers.cloudflare.com/workers/platform/limits/), [D1 limites](https://developers.cloudflare.com/d1/platform/limits/), [D1 pricing](https://developers.cloudflare.com/workers/platform/pricing/), [R2 pricing](https://developers.cloudflare.com/r2/pricing/).
 
-## Funcionalidades encontradas e melhorias entregues
+Para reduzir risco de custo, o código Cloudflare limita armazenamento reservado de imagem a 8 GiB, uploads a 5 MiB e gravações/exclusões a 10 mil operações mensais. A conta Cloudflare pode ter uso compartilhado com outros recursos; esses limites locais não controlam outras aplicações/buckets da conta. Nenhuma conta foi autenticada ou configurada neste ambiente. Não foi adicionado cartão, plano pago ou serviço cobrável.
 
-- Catálogo com pesquisa, categoria, detalhes, disponibilidade sem divulgar quantidade exata e preço de compra.
-- Painel protegido com administração de produtos, categorias, identidade da loja e imagens.
-- Upload Supabase validado por extensão, tamanho e assinatura do conteúdo.
-- Carrinho salvo no navegador, revalidação de preço/disponibilidade e mensagem de pedido WhatsApp sem reserva automática.
-- Corrigida a ausência de ação para adicionar produto à sacola a partir da página individual.
-- Estado orientativo de sacola vazia.
-- Metadados de descrição, Open Graph e Twitter para partilha de produtos.
-- Removido o carregamento obrigatório de fontes externas; o CSS usa fontes do sistema como alternativa rápida.
-- Criada automação GitHub Actions para restore, build Release e testes na branch de desenvolvimento e em pull requests.
+## O que foi preparado
 
-## Testes e resultados comprovados
+- Branch isolada `feature/estoqueweb-cloudflare`, baseada no commit remoto `54bb8077052741c5746f443906e641662038d64e`; código ASP.NET original preservado.
+- Worker com catálogo, busca, categorias, página de produto e metadados sociais; painel em `/admin`; autenticação administrativa com hash PBKDF2, bloqueio de tentativas e cookie assinado; CRUD de produtos/categorias/configuração; validação de carrinho no servidor e mensagem WhatsApp.
+- O checkout revalida a quantidade solicitada contra o estoque atual e impede enviar quantidade acima da disponível, sem expor o saldo exato de estoque na API pública.
+- D1 com migration inicial versionada. **Não aplicada a nenhum banco remoto**. Aplicada somente a uma instância D1 local descartável de teste em `/tmp`.
+- R2 configurado como binding de imagens permanentes; testes locais usaram emulador R2 e imagem fictícia.
+- Workflow CI em `.github/workflows/cloudflare.yml` e deploy manual protegido em `.github/workflows/cloudflare-deploy.yml`. Deploy só roda na branch Cloudflare, com confirmação explícita e gate `CLOUDFLARE_DEPLOY_ENABLED=true`; o alvo deve ter ID D1 diferente do placeholder. O workflow aplica migration ao D1 configurado antes do deploy.
+- Runbook de provisionamento em [cloudflare/README.md](cloudflare/README.md). Nenhum produto, WhatsApp, política de entrega ou dado comercial real foi inventado.
 
-- `dotnet test EstoqueWeb.slnx`: 5 aprovados, 0 falhos.
-- `dotnet build EstoqueWeb.slnx --configuration Release`: build aprovado, 0 avisos e 0 erros.
-- `dotnet test EstoqueWeb.slnx --no-build --configuration Release`: 5 aprovados, 0 falhos.
-- `git diff --check`: aprovado.
-- GitHub Actions no commit `f8454c412a40242b5a850ec82c95e85bec7d48e1`: execução `46051667770` (evento `push`) e `46051667852` (evento `pull_request`), ambas `.NET`, `completed` / `success`.
-- Os testes existentes cobrem ocultação de custo/quantidade interna e validação de dados de contato.
-- Não foram feitos testes de navegador, testes contra banco, validação de upload conectado nem smoke tests locais de rotas: não há connection string configurada; sem banco, as páginas que leem o catálogo não podem ser servidas corretamente.
-- Nenhum teste da versão publicada foi realizado, pois não há URL de deploy conectada ou conhecida.
+## Verificações
 
-## Publicação
+- `npm test`: 6 testes passaram, incluindo rota `/admin`.
+- `npm run check` (`wrangler deploy --dry-run`): passou e reconheceu Worker, assets, D1 e R2.
+- Teste HTTP ponta a ponta com Worker local: assets, saúde, catálogo, bloqueio anônimo, proteção de origem, login e atributos do cookie, painel, configuração, categoria, cadastro/listagem de produto, pesquisa, filtro, preço em centavos, ocultação de estoque/preço de compra, detalhe/OG, upload/entrega de imagem e validação de carrinho passaram.
+- Teste Chromium/Playwright local: navegação pela busca/categoria/detalhe, preço, carrinho/total, bloqueio de quantidade acima do estoque, conteúdo da URL WhatsApp (requisição externa interceptada), login no admin, configuração e layout de loja/admin em viewport de 390 px sem rolagem horizontal passaram.
+- Após reiniciar o Worker local usando a mesma persistência temporária, produto/configuração no D1 local e imagem no R2 local continuaram disponíveis.
+- Logs locais do emulador: 40 spans consultados com resultado `ok`; não houve falha 5xx nos fluxos finais. Um 404 de `/admin` foi encontrado no primeiro teste, corrigido e revalidado.
+- Não houve teste em URL pública, banco Cloudflare remoto, billing real ou restauração de serviço remoto, pois não há sessão Cloudflare nem recursos criados.
 
-- URL pública: **não publicada / não verificada**.
-- Branch publicada: [feature/estoqueweb-cosmeticos](https://github.com/GabrieldsReis/Site_Pessoal/tree/feature/estoqueweb-cosmeticos). Commit: `f8454c412a40242b5a850ec82c95e85bec7d48e1`.
-- Pull Request #1: [Implementa vitrine de cosméticos e painel administrativo](https://github.com/GabrieldsReis/Site_Pessoal/pull/1), aberta e não mesclada. Mantida sem alteração de estado.
-- Migration — **não verificada**. O corpo da PR afirma que a migration aditiva foi aplicada a um PostgreSQL disponível. Em contraste, `EXECUTION_LOG.md` registra que não havia connection string e nenhuma migration foi executada. A revisão atual encontrou somente o código que chama `MigrateAsync()` quando há connection string; não encontrou credencial, log de banco/deploy nem evidência de consulta a `__EFMigrationsHistory`. Não afirmar que foi aplicada nem que não foi aplicada. Antes de conectar um banco já existente, confirmar o histórico de migrations e obter backup; em banco novo, a inicialização tentará aplicar as migrations automaticamente.
-- Nenhuma conta, serviço, banco, bucket ou domínio foi criado neste trabalho.
+## GitHub e migration PostgreSQL
 
-## Contas e configurações externas para deploy
+- Estado conferido: `feature/estoqueweb-cosmeticos` remoto em `54bb8077052741c5746f443906e641662038d64e`.
+- Duas execuções `.NET` concluídas com sucesso no commit `f8454c412a40242b5a850ec82c95e85bec7d48e1`: `46051667770` (`push`) e `46051667852` (`pull_request`).
+- No último commit informado/confirmado, `54bb8077052741c5746f443906e641662038d64e`, as execuções `.NET` `46052454547` (`push`) e `46052460974` (`pull_request`) também concluíram com sucesso.
+- PR #1: [Implementa vitrine de cosméticos e painel administrativo](https://github.com/GabrieldsReis/Site_Pessoal/pull/1), aberta, head `54bb8077052741c5746f443906e641662038d64e`, não mesclada. Preservada.
+- Migration original do PostgreSQL: **não verificada**. A descrição da PR diz que uma migration foi aplicada, enquanto o registro local diz que não havia connection string. Não existe neste ambiente credencial, log de execução contra esse PostgreSQL ou consulta a `__EFMigrationsHistory`. Portanto não é possível afirmar que foi aplicada ou que não foi aplicada. Esta migration PostgreSQL não foi executada neste trabalho. A migration D1 local e a futura D1 remota são bancos diferentes.
+- Nenhum merge para `main` foi feito.
 
-O deploy está preparado em `render.yaml` e Dockerfile, mas ainda exige que a pessoa responsável conecte as contas nos painéis. Não envie senhas/chaves por chat nem faça commit de valores reais.
+## O que falta para publicar
 
-1. **GitHub**: a conta/repositório já existem e a branch de feature está publicada. A pessoa que cria o serviço Render precisa autorizar acesso desse serviço ao repositório `GabrieldsReis/Site_Pessoal`.
-2. **Supabase**: criar/selecionar uma organização no plano Free e um projeto PostgreSQL, escolher região próxima da aplicação, definir e guardar a senha do banco. Para Render, copiar no Dashboard → Connect a connection string **Session pooler** (IPv4, porta `5432`) e formatar para Npgsql como `Host=<pooler-host>;Port=5432;Database=postgres;Username=postgres.<project-ref>;Password=<senha-do-banco>;SSL Mode=Require`. Confirmar host, usuário e região no próprio painel; eles variam por projeto.
-3. **Supabase Storage** no mesmo projeto: criar bucket chamado `produtos`, marcado como público somente para leitura das imagens. A aplicação envia/exclui arquivos no servidor. Para `Storage__ServiceKey`, o código atual usa a chave legada `service_role` em `Authorization: Bearer` e `apikey`; não use chave `anon`/publishable. Chaves secret novas `sb_secret_...` não são substitutas sem ajuste no código, pois a documentação atual manda enviá-las apenas no header `apikey`. Esta chave tem acesso elevado e deve existir somente como segredo do serviço Render.
-4. **Render**: criar/usar uma conta e workspace, conectar o GitHub e iniciar um Blueprint apontando para `render.yaml` da branch `feature/estoqueweb-cosmeticos`. O blueprint fixa essa branch e `autoDeployTrigger: checksPass`; o serviço só deve publicar commits após os checks GitHub passarem. A configuração pede os seguintes valores no painel, nunca no YAML:
+Não há conta Cloudflare autenticada (`wrangler whoami` respondeu “You are not authenticated”), database ID real, bucket remoto, segredos de produção, token CI ou URL pública. A intervenção indispensável é a pessoa responsável autenticar uma conta Cloudflare no ambiente (`npx wrangler login`) ou fornecer acesso por um token Cloudflare restrito, e criar/confirmar os recursos Free no painel. O runbook lista os passos e configurações exatos. Se o painel pedir cartão, plano pago, habilitação de cobrança automática ou confirmação de recurso pago, interromper sem prosseguir.
 
-   | Variável | Valor a cadastrar |
-   | --- | --- |
-   | `ASPNETCORE_ENVIRONMENT` | `Production` (já definido no blueprint) |
-   | `ConnectionStrings__DefaultConnection` | String Npgsql do Session pooler Supabase, com SSL |
-   | `Storage__SupabaseUrl` | URL do projeto Supabase (`https://<project-ref>.supabase.co`) |
-   | `Storage__ServiceKey` | Chave legada `service_role`, exclusivamente no servidor |
-   | `Storage__Bucket` | `produtos` (já definido no blueprint) |
-   | `InitialAdmin__Email` | E-mail da pessoa responsável pelo painel |
-   | `InitialAdmin__Password` | Senha aleatória forte, de uso exclusivo; retirar do ambiente após criar/verificar o primeiro acesso |
+Após configuração, definir `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` e `SESSION_SECRET` como Worker Secrets; cadastrar `CLOUDFLARE_ACCOUNT_ID` e `CLOUDFLARE_API_TOKEN` em Actions Secrets; `CLOUDFLARE_D1_DATABASE_ID` e `CLOUDFLARE_DEPLOY_ENABLED` como Actions Variables. O deploy poderá ser iniciado manualmente pelo workflow. A primeira execução da D1 remota deve usar somente o banco novo criado para `estoqueweb` e conferir ID/nome antes de aplicar migration.
 
-5. **Dados de operação da loja**: a responsável precisa informar nome, WhatsApp em formato internacional, Instagram, região, regras reais de entrega/pagamento, produtos e fotos. Esses dados são preenchidos no painel da aplicação após deploy.
-6. **Domínio próprio**: opcional; só é necessário se a loja tiver domínio. A URL `onrender.com` serve para prévia.
-
-`EstoqueWeb/Program.cs` executa migrations e cria a primeira configuração/admin na inicialização apenas quando a connection string está configurada. Antes do primeiro deploy com banco já usado, verificar `__EFMigrationsHistory` com acesso autorizado e backup recente. Com banco novo, registrar a migration aplicada olhando os logs de startup e a tabela de histórico. Depois, testar login, páginas públicas, upload, CRUD, sacola/WhatsApp e persistência.
-
-**Custo**: o blueprint fixa apenas o serviço web Free e não cria banco Render. Não contratar plano pago, habilitar recurso pago, conectar cartão ou aceitar overage. Como a documentação Render informa cobrança de excedente de banda, não há garantia de cobrança zero após ativar conta/serviço; conferir limites e faturamento no workspace antes de criação. Supabase Free também tem limites e pausa por inatividade. Se a exigência for garantia absoluta de não gerar cobrança, manter o deploy desligado até haver um caminho com limite rígido de gasto confirmado no painel.
-
-## Manutenção
-
-- Use `dotnet restore`, `dotnet build EstoqueWeb.slnx --configuration Release` e `dotnet test EstoqueWeb.slnx` antes de atualizar.
-- Configure segredos no gerenciador do provedor, nunca no Git.
-- Antes de uma migration futura, identifique o projeto e ambiente do banco e obtenha backup/exportação; não use `EnsureCreated` nem apague dados.
-- Faça exportações manuais regulares do banco no plano Supabase Free; acompanhe cotas, avisos de pausa, espaço de imagens e execução de CI.
-- Desenvolva na branch `feature/estoqueweb-cosmeticos`; não foi feito merge para `main`.
+Quando publicar, `/admin` permitirá à responsável informar nome, WhatsApp, produtos, preços, fotos e demais dados reais. Até lá, URL pública: **inexistente**; administração em produção: **indisponível**. Não é seguro divulgar ou preencher dados fictícios.
