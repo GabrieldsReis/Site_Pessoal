@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="EstoqueWeb.Tests/EstoqueWeb.Tests.csproj" />
+  <Project Path="EstoqueWeb/EstoqueWeb.csproj" />
+</Solution>
